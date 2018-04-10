@@ -815,7 +815,7 @@ encode_component_part(Part) ->
 					PartData
 			 );
 		% Skipping insertion of nils due leading to duplicate boundaries listed
-		nil -> []
+		nil -> [];
 		_ ->
 			io:format("encode_component_part couldn't match Part to: ~p~n", [Part]),
 			[]
