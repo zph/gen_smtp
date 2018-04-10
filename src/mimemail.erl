@@ -779,6 +779,8 @@ encode_header_value(_, Value) ->
 encode_component(_Type, _SubType, Headers, Params, Body) ->
 	if
 		is_list(Body) -> % is this a multipart component?
+			BodyWithoutNil = lists:filter(fun(Part) -> Part /= nil end, Body),
+			% Filter out portions that cannot be encoded to avoid duplicate boundary segments
 			Boundary = proplists:get_value(<<"boundary">>, proplists:get_value(<<"content-type-params">>, Params)),
 			[<<>>] ++  % blank line before start of component
 			lists:flatmap(
@@ -786,7 +788,7 @@ encode_component(_Type, _SubType, Headers, Params, Body) ->
 						[list_to_binary([<<"--">>, Boundary])] ++ % start with the boundary
 						encode_component_part(Part)
 				end,
-				Body
+				BodyWithoutNil
 			) ++ [list_to_binary([<<"--">>, Boundary, <<"--">>])] % final boundary (with /--$/)
 			  ++ [<<>>]; % blank line at the end of the multipart component
 		true -> % or an inline component?
@@ -814,8 +816,6 @@ encode_component_part(Part) ->
 					get_header_value(<<"Content-Transfer-Encoding">>, FixedHeaders),
 					PartData
 			 );
-		% Skipping insertion of nils due leading to duplicate boundaries listed
-		nil -> [];
 		_ ->
 			io:format("encode_component_part couldn't match Part to: ~p~n", [Part]),
 			[]
