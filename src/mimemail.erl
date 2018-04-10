@@ -814,6 +814,8 @@ encode_component_part(Part) ->
 					get_header_value(<<"Content-Transfer-Encoding">>, FixedHeaders),
 					PartData
 			 );
+		% Skipping insertion of nils due leading to duplicate boundaries listed
+		nil -> []
 		_ ->
 			io:format("encode_component_part couldn't match Part to: ~p~n", [Part]),
 			[]
